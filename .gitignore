@@ -26,5 +26,5 @@ build/Release
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
 
-# sublime text sftp plugin config file
-sftp-config.json
+# sublime text sftp plugin wechatJsSign file
+sftp-wechatJsSign.json

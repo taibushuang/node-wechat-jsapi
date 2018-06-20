@@ -1,9 +1,23 @@
 #微信JS SDK服务器端Node.js实现
+
+forked from stiekel/node-wechat-jsapi
+
 微信官方只给出了JSSDK中的签名算法，这里将算法打包成也相应的API，并使用一个简单的网页演示了基本的实现。
 
-##配置
+## 调用示例：
 
-使用之前，需要先将`config.js`文件中的`appId`和`secret`替换为你的应用的对应值。端口号也是在该文本中修改。
+const wechatJsSign = require('node-wechat-jsapi');
+
+
+wechatJsSign(appid, appsecret, url, function(err, signtxt) {
+     //put your code here.
+});
+
+
+
+## 支持以下的测试链接：
+
+使用之前，需要先将`configManagerManager.js`文件中的`appId`和`secret`替换为你的应用的对应值。端口号也是在该文本中修改。
 
 ##运行
 

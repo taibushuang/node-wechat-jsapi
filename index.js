@@ -1,0 +1,1 @@
+exports.wechatJsSign = require('./wechatJsSign');

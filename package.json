@@ -1,8 +1,8 @@
 {
   "name": "node-wechat-jsapi",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "wechat jsapi verify for Node.js",
-  "main": "app.js",
+  "main": "index.js",
   "dependencies": {
     "jssha": "^1.5.0",
     "express": "~4.12.4",
