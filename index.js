@@ -1,1 +1,1 @@
-exports.wechatJsSign = require('./wechatJsSign');
+exports.APIManager = require('./apiManager').APIManager;
