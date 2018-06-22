@@ -33,7 +33,7 @@ var raw = function (args) {
 var sign = function (jsapi_ticket, url) {
   var ret = {
     jsapi_ticket: jsapi_ticket,
-    nonceStr: createNonceStr(),
+    noncestr: createNonceStr(),
     timestamp: createTimestamp(),
     url: url
   };

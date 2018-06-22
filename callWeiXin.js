@@ -40,7 +40,7 @@ var get = function(appid, secret, cb){
       }
 
       if(!body.access_token) {
-        return atcb(new Error('can NOT get access_toke from weixin server.'));
+        return atcb(new Error('can NOT get access_token from weixin server.'));
       } else {
         access_token = body.access_token;
         accessTokenGetTime = new Date();
