@@ -18,7 +18,11 @@ var raw = function (args) {
   for (var k in newArgs) {
     string += '&' + k + '=' + newArgs[k];
   }
+  console.log('string before =' + string);
+
   string = string.substr(1);
+  console.log('string after =' + string);
+
   return string;
 };
 
