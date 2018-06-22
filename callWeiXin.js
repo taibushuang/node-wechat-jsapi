@@ -27,6 +27,9 @@ var get = function(appid, secret, cb){
       console.log('get access_token from local cache');
       return atcb(null);
     }
+
+    console.log('will get access_token ... appid=' + appid);
+
     //get from weixin
     request.get(ACCESS_TOKEN_API.replace('APPID_VALUE', appid).replace('SECRET_VALUE', secret), function(err, response, body){
       if(err) {
