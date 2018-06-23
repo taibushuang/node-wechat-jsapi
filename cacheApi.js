@@ -32,7 +32,6 @@ function loadObject(appId, type, callback) {
 }
 
 function loadBykey(strKey, callback) {
-  console.log("mongoose ready state = " + mongoose.connection.readyState);
   if(!fSaveToMongo) {
     let err = 'fSaveToMongo disabled !!';
     return callback(err, null);
