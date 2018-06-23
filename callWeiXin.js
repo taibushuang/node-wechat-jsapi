@@ -96,59 +96,63 @@ let get = function(appid, secret, cb){
     });
   }
 
-  function getTicket(tcb){
-    switch (loadTokenFrom) {
+  function getTicketLocal(callback) {
+    if((1 === loadTokenFrom)&&(ticket)&&(ticket.length > 0)) {
+      return callback(null, ticket);
+    } else if(2 === loadTokenFrom) {
+      cacheApi.loadObject(appid, type_ticket, function (err, ticketObject) {
+        if(ticketObject) {
+          ticket = ticketObject.value;
 
-      case 1:
-      {
-        if((ticket) && (ticket.length > 0)) {
-          return tcb(null, ticket);
+          console.log('get ticket from local cache');
+          return callback(null, ticket);
         }
-        //fall through;
-      }
-      case 2:
-      {
-        cacheApi.loadObject(appid, type_ticket, function (err, ticketObject) {
-          if(ticketObject) {
-            ticket = ticketObject.value;
 
-            console.log('get ticket from local cache');
-            return tcb(null, ticket);
-          }
-        });
-      }
+        return callback(err);
+      });
     }
 
-    request.get(TICKET_API.replace('ACCESS_TOKEN_VALUE', access_token), function(err, response, body) {
-      if(err) {
-        return tcb(err);
+    let err = 'need call wechat server !';
+    return callback(err);
+  }
+
+  function getTicket(tcb){
+    getTicketLocal(function (err, ticketObject) {
+      if(ticketObject) {
+        return tcb(null, ticketObject);
       }
 
-      try{
-        body = JSON.parse(body);
-      } catch(e) {
-        return tcb(new Error('json from weixin con NOT parse, body: ' + body));
-      }
+      request.get(TICKET_API.replace('ACCESS_TOKEN_VALUE', access_token), function(err, response, body) {
+        if(err) {
+          return tcb(err);
+        }
 
-      console.log('body, typeof: ', body, typeof body);
-      if('ok' === body.errmsg && body.ticket) {
-        ticket = body.ticket;
+        try{
+          body = JSON.parse(body);
+        } catch(e) {
+          return tcb(new Error('json from weixin con NOT parse, body: ' + body));
+        }
 
-        let cacheObject = {
-          key: appid + '_' + type_ticket,
-          appId: appid,
-          type: type_ticket,
-          value: ticket
-        };
-        cacheApi.cacheObject(cacheObject, function (err, cachedObject) {
-          if(err) {
-            console.error(err);
-          }
-        });
-        return tcb(null);
-      } else {
-        return tcb(new Error('get ticket failed'));
-      }
+        console.log('body, typeof: ', body, typeof body);
+        if('ok' === body.errmsg && body.ticket) {
+          ticket = body.ticket;
+
+          let cacheObject = {
+            key: appid + '_' + type_ticket,
+            appId: appid,
+            type: type_ticket,
+            value: ticket
+          };
+          cacheApi.cacheObject(cacheObject, function (err, cachedObject) {
+            if(err) {
+              console.error(err);
+            }
+          });
+          return tcb(null);
+        } else {
+          return tcb(new Error('get ticket failed'));
+        }
+      });
     });
   }
 };
