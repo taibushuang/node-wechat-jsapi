@@ -107,13 +107,12 @@ let get = function(appid, secret, cb){
           console.log('get ticket from local cache');
           return callback(null, ticket);
         }
-
         return callback(err);
       });
+    } else {
+      let err = 'need call wechat server !';
+      return callback(err);
     }
-
-    let err = 'need call wechat server !';
-    return callback(err);
   }
 
   function getTicket(tcb){
@@ -133,7 +132,6 @@ let get = function(appid, secret, cb){
           return tcb(new Error('json from weixin con NOT parse, body: ' + body));
         }
 
-        console.log('body, typeof: ', body, typeof body);
         if('ok' === body.errmsg && body.ticket) {
           ticket = body.ticket;
 
