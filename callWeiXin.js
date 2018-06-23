@@ -1,16 +1,22 @@
-var request = require('request');
-var ACCESS_TOKEN_API = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID_VALUE&secret=SECRET_VALUE';
-var TICKET_API = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN_VALUE&type=jsapi';
+let request = require('request');
+let ACCESS_TOKEN_API = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID_VALUE&secret=SECRET_VALUE';
+let TICKET_API = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN_VALUE&type=jsapi';
+let cacheApi = require('./cacheApi');
 
-var access_token = '';
-var expire = 7200000;
-var accessTokenGetTime = new Date();
-var ticket = '';
-var get = function(appid, secret, cb){
+let loadTokenFrom = 0; //0 for unknown, 1 for memory, 2 for local cache, 3 for wechat server;
+let type_access_token = 'type_access_token';
+let type_ticket = 'type_ticket';
+
+let access_token = '';
+let expire = 7200000;
+let accessTokenGetTime = new Date();
+let ticket = '';
+
+let get = function(appid, secret, cb){
   //get token with appid and secret
   getAccessToken(function(err){
     if(err) {
-      return cb(err)
+      return cb(err);
     }
     getTicket(function(err){
       if(err) {
@@ -22,39 +28,97 @@ var get = function(appid, secret, cb){
   });
 
   function getAccessToken(atcb){
+    loadTokenFrom = 0;
     //check is this access_token expire
     if(access_token && new Date().getTime() - accessTokenGetTime.getTime() < expire) {
       console.log('get access_token from local cache');
+      loadTokenFrom = 1;
       return atcb(null);
     }
 
-    console.log('will get access_token ... appid=' + appid);
+    console.log('will get access_token from local storage... appid=' + appid);
+    let fuseStorage = false;
+    cacheApi.loadObject(appid, type_access_token, function (err, tokenObject) {
+      if(tokenObject) {
+        access_token = tokenObject.value;
+        accessTokenGetTime = tokenObject.updatedAt;
+        console.log('accessTokenGetTime =' + accessTokenGetTime);
 
-    //get from weixin
-    request.get(ACCESS_TOKEN_API.replace('APPID_VALUE', appid).replace('SECRET_VALUE', secret), function(err, response, body){
-      if(err) {
-        return atcb(err);
+        if(access_token && new Date().getTime() - accessTokenGetTime.getTime() < expire) {
+          fuseStorage = true;
+          loadTokenFrom = 2;
+          console.log('get access_token from local cache');
+          return atcb(null);
+        }
       }
 
-      try{
-        body = JSON.parse(body);
-      } catch(e) {
-        return atcb(new Error('json from weixin con NOT parse, body: ' + body));
-      }
+      if(!fuseStorage) {
+        console.log('will get access_token from wechat server... appid=' + appid);
 
-      if(!body.access_token) {
-        return atcb(new Error('can NOT get access_token from weixin server.'));
-      } else {
-        access_token = body.access_token;
-        accessTokenGetTime = new Date();
+        //get from weixin
+        request.get(ACCESS_TOKEN_API.replace('APPID_VALUE', appid).replace('SECRET_VALUE', secret), function(err, response, body){
+          if(err) {
+            return atcb(err);
+          }
+
+          try{
+            body = JSON.parse(body);
+          } catch(e) {
+            return atcb(new Error('json from weixin con NOT parse, body: ' + body));
+          }
+
+          if(!body.access_token) {
+            return atcb(new Error('can NOT get access_token from weixin server.'));
+          } else {
+            access_token = body.access_token;
+            accessTokenGetTime = new Date();
+
+            let cacheObject = {
+              key: appid + '_' + type_access_token,
+              appId: appid,
+              type: type_access_token,
+              value: access_token
+            };
+
+            console.log('will save cacheObject = ' + JSON.stringify(cacheObject, null, 2));
+            
+            cacheApi.cacheObject(cacheObject, function (err, cachedObject) {
+              if(err) {
+                console.error(err);
+              }
+            });
+          }
+          if(body.expire) expire = Number(body.expire)*1000;
+          console.log('get access_token from weixin server');
+          atcb(null);
+        });
       }
-      if(body.expire) expire = Number(body.expire)*1000;
-      console.log('get access_token from weixin server');
-      atcb(null);
     });
   }
 
   function getTicket(tcb){
+    switch (loadTokenFrom) {
+
+      case 1:
+      {
+        if((ticket) && (ticket.length > 0)) {
+          return tcb(null, ticket);
+        }
+        //fall through;
+      }
+      case 2:
+      {
+        cacheApi.loadObject(appid, type_ticket, function (err, ticketObject) {
+          if(ticketObject) {
+            ticket = ticketObject.value;
+
+            console.log('get ticket from local cache');
+            return tcb(null, ticket);
+          }
+        });
+      }
+    }
+
     request.get(TICKET_API.replace('ACCESS_TOKEN_VALUE', access_token), function(err, response, body) {
       if(err) {
         return tcb(err);
@@ -69,6 +133,18 @@ var get = function(appid, secret, cb){
       console.log('body, typeof: ', body, typeof body);
       if('ok' === body.errmsg && body.ticket) {
         ticket = body.ticket;
+
+        let cacheObject = {
+          key: appid + '_' + type_ticket,
+          appId: appid,
+          type: type_ticket,
+          value: ticket
+        };
+        cacheApi.cacheObject(cacheObject, function (err, cachedObject) {
+          if(err) {
+            console.error(err);
+          }
+        });
         return tcb(null);
       } else {
         return tcb(new Error('get ticket failed'));
