@@ -10,7 +10,6 @@ let type_ticket = 'type_ticket';
 let access_token = '';
 let expire = 7200000;
 let accessTokenGetTime = new Date();
-let ticketGetTime = new Date();
 let ticket = '';
 
 let get = function(appid, secret, forceConnect2WX, cb){

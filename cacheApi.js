@@ -19,7 +19,7 @@ function cacheObject(object, callback) {
 
   object.key = object.appId + '_' + object.type;
   wechatCache.findOneAndUpdate({"key":object.key},
-    {$setOnInsert: object},
+    {$set: object},
     {upsert: true},
     function(err, res) {
       return callback(err, res);
