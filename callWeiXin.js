@@ -43,6 +43,8 @@ let get = function(appid, secret, cb){
         access_token = tokenObject.value;
         accessTokenGetTime = tokenObject.updatedAt;
         console.log('accessTokenGetTime =' + accessTokenGetTime);
+        let timelapse = new Data().getTime() - accessTokenGetTime.getTime();
+        logger('timelapse = ' + timelapse);
 
         if(access_token && new Date().getTime() - accessTokenGetTime.getTime() < expire) {
           fuseStorage = true;
