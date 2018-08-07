@@ -13,6 +13,16 @@ var APIManager  = function (config) {
 // 使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串string1。这里需要注意的是所有参数名均为小写字符。
 // 对string1作sha1加密，字段名和字段值都采用原始值，不进行URL 转义。
 
+APIManager.prototype.getToken = function(callback) {
+  callWeiXin.get(this.appId, this.secret, false, function (err, access_token, ticket) {
+    if(err) {
+      callback(err, null);
+    } else {
+      callback(null, access_token, ticket);
+    }
+  });
+};
+
 APIManager.prototype.getSignText = function(url, callback){
 
   callWeiXin.get(this.appId, this.secret, false, function(err, access_token, ticket){
